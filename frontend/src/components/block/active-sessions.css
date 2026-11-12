@@ -1,0 +1,30 @@
+/* Palette lives in app/globals.css; aliases preserve the block's public API. */
+.obsidian-active-sessions {
+  --obsidian-active-sessions-success: var(--session-success);
+  --obsidian-active-sessions-warning: var(--session-warning);
+  --obsidian-active-sessions-danger: var(--session-danger);
+  --obsidian-active-sessions-danger-solid: var(--session-danger-solid);
+}
+
+.obsidian-active-sessions__ping {
+  animation: obsidian-active-sessions-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.obsidian-active-sessions__pulse {
+  animation: obsidian-active-sessions-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes obsidian-active-sessions-ping {
+  0% { opacity: 0.6; transform: scale(1); }
+  75%, 100% { opacity: 0; transform: scale(2.4); }
+}
+
+@keyframes obsidian-active-sessions-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obsidian-active-sessions__ping,
+  .obsidian-active-sessions__pulse { animation: none; }
+}

@@ -1,0 +1,30 @@
+/* Status hues are shared with the rest of the Chainify design system. */
+.obsidian-status-bars {
+  --obsidian-status-up: var(--status-up);
+  --obsidian-status-degraded: var(--status-degraded);
+  --obsidian-status-down: var(--status-down);
+  --obsidian-status-empty: var(--status-empty);
+}
+
+.obsidian-status-bars__ping {
+  animation: obsidian-status-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.obsidian-status-bars__pulse {
+  animation: obsidian-status-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes obsidian-status-ping {
+  0% { opacity: 0.55; transform: scale(1); }
+  75%, 100% { opacity: 0; transform: scale(2.2); }
+}
+
+@keyframes obsidian-status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obsidian-status-bars__ping,
+  .obsidian-status-bars__pulse { animation: none; }
+}

@@ -1,0 +1,43 @@
+@layer components {
+  .obsidian-draggable-marquee {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    touch-action: pan-y;
+    user-select: none;
+    cursor: grab;
+    outline-color: rgb(var(--foreground));
+  }
+
+  .obsidian-draggable-marquee[data-dragging="true"] {
+    cursor: grabbing;
+  }
+
+  .obsidian-marquee-track {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+  }
+
+  .obsidian-marquee-copy {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .obsidian-marquee-item {
+    flex-shrink: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obsidian-draggable-marquee {
+    overflow-x: auto;
+  }
+  .obsidian-draggable-marquee > div {
+    transform: none !important;
+  }
+  .obsidian-draggable-marquee [data-marquee-copy="duplicate"] {
+    display: none;
+  }
+}
