@@ -69,7 +69,10 @@ dev-tls: ## Terminate https on $(CSS_PORT) in front of the CSS container on $(CS
 	bun scripts/dev-tls.ts
 
 dev-web: ## Run Next.js locally with https on port $(WEB_PORT)
-	cd frontend && bun run dev
+	cd frontend && PORT=$(WEB_PORT) bun run dev -- \
+		--experimental-https \
+		--experimental-https-key ../certs/chainify.key \
+		--experimental-https-cert ../certs/chainify.crt
 
 # backend is canonical: ./cmd/server includes the package and supports future Go files.
 backend: ## Run the Go API package from source (canonical)

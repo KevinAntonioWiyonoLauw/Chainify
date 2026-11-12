@@ -15,4 +15,3 @@ subjectAltName = @alt
 [alt]
 DNS.1 = localhost
 IP.1  = 127.0.0.1
-IP.2  = 192.168.18.9
