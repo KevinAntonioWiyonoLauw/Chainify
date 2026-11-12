@@ -1,0 +1,17 @@
+bin
+chainify-api
+chainify-api.exe
+*.exe
+*.out
+*.test
+*.log
+.git
+.gitignore
+.env
+.env.*
+Dockerfile
+.dockerignore
+coverage
+.vscode
+.idea
+.DS_Store
