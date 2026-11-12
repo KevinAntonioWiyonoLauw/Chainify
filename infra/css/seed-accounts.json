@@ -1,0 +1,26 @@
+[
+  {
+    "email": "alice@example.com",
+    "password": "chainify-demo-2026",
+    "pods": [
+      {
+        "name": "alice",
+        "settings": {
+          "linkStorage": true
+        }
+      }
+    ]
+  },
+  {
+    "email": "bob@example.com",
+    "password": "chainify-demo-2026",
+    "pods": [
+      {
+        "name": "bob",
+        "settings": {
+          "linkStorage": true
+        }
+      }
+    ]
+  }
+]

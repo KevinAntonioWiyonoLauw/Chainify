@@ -1,0 +1,96 @@
+services:
+  css:
+    image: solidproject/community-server:latest
+    hostname: css
+    restart: unless-stopped
+    ports:
+      - "${CSS_PORT:-3001}:3000"
+    command: ["-c", "@css:config/file.json", "-f", "/data", "-b", "${CSS_BASE_URL:-http://localhost:3001/}"]
+    volumes:
+      - css-data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/',r=>{r.resume();process.exit(r.statusCode<500?0:1)}).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - internal
+      - egress
+
+  api:
+    build:
+      context: ../backend
+      target: prod
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${API_PORT:-8080}:8080"
+    environment:
+      API_PORT: "8080"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-http://localhost:3000}"
+      WEBID_FETCH_ALLOWLIST: "${WEBID_FETCH_ALLOWLIST:-css,css:3000,localhost,localhost:3000}"
+      CSS_ISSUER_URL: "${CSS_ISSUER_URL:-http://localhost:3001/}"
+      FETCH_TIMEOUT_MS: "${FETCH_TIMEOUT_MS:-8000}"
+      MAX_PROFILE_BYTES: "${MAX_PROFILE_BYTES:-1048576}"
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+    depends_on:
+      css:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - internal
+      - egress
+
+  web:
+    build:
+      context: ../frontend
+      target: prod
+      args:
+        NEXT_PUBLIC_API_BASE_URL: "${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080}"
+        NEXT_PUBLIC_SOLID_ISSUER: "${NEXT_PUBLIC_SOLID_ISSUER:-http://localhost:3001/}"
+        NEXT_PUBLIC_SOLID_CLIENT_ID: "${NEXT_PUBLIC_SOLID_CLIENT_ID:-http://localhost:3000/id}"
+        NEXT_PUBLIC_APP_URL: "${NEXT_PUBLIC_APP_URL:-http://localhost:3000}"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.next/cache
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - internal
+
+volumes:
+  css-data:
+    name: chainify-css-data
+
+networks:
+  # Service-to-service traffic only; never published.
+  internal:
+    name: chainify-internal
+    internal: true
+  # Egress stays enabled so CSS and the WebID resolver can reach real Solid providers.
+  # Marking the only network internal: true would silently block that outbound traffic.
+  egress:
+    name: chainify-egress

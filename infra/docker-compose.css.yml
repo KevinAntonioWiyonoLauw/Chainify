@@ -1,0 +1,58 @@
+name: chainify-css
+
+# CSS-only stack for local development. Run the Go API and Next.js directly on
+# the host; no frontend or backend images are built by this file.
+#
+# Solid-OIDC DPoP needs `crypto.subtle`, and browsers expose it only on secure
+# contexts: https, or plain http on localhost. This image rejects TLS flags, so
+# the container serves plain http on 13003 and scripts/dev-tls.ts terminates
+# https on 13002 in front of it.
+#
+# The public base URL must be the host clients actually use. Solid-OIDC compares
+# the declared issuer byte-for-byte against the URL the browser opened, so a
+# phone reaching https://192.168.18.9:13002/ gets a 500 unless `-b` names that
+# same origin. Set CSS_BASE_URL in .env when the LAN address changes.
+#
+# The provider dereferences the client identifier document from inside this
+# container. `localhost` there means the container itself, so host-facing origins
+# are routed to the host through the host-gateway entries below.
+services:
+  css:
+    image: solidproject/community-server:latest
+    restart: unless-stopped
+    # The provider dereferences the app's client identifier document over https,
+    # and the dev certificate is self-signed. Trusting it inside this container
+    # only keeps the login flow working without weakening the app or the browser.
+    environment:
+      NODE_EXTRA_CA_CERTS: /certs/chainify.crt
+    ports:
+      - "${CSS_UPSTREAM_PORT:-13003}:3000"
+    extra_hosts:
+      # Resolve the browser-facing localhost origins to the host, not the container.
+      - "localhost:host-gateway"
+      - "host.docker.internal:host-gateway"
+    command:
+      - "-c"
+      - "@css:config/file.json"
+      - "-f"
+      - "/data"
+      - "-b"
+      - "${CSS_BASE_URL:-https://localhost:13002/}"
+      # Seeds the demo account so the login flow can be exercised end to end.
+      - "--seedConfig"
+      - "/config/seed-accounts.json"
+    volumes:
+      - css-data:/data
+      - ../certs:/certs:ro
+      - ./css/seed-accounts.json:/config/seed-accounts.json:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/',r=>{r.resume();process.exit(r.statusCode<500?0:1)}).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  css-data:
+    name: chainify-css-data
+    external: true

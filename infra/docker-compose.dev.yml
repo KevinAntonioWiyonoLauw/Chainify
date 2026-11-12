@@ -1,0 +1,70 @@
+services:
+  css:
+    image: solidproject/community-server:latest
+    hostname: css
+    ports:
+      - "${CSS_PORT:-3001}:3000"
+    command: ["-c", "@css:config/file.json", "-f", "/data", "-b", "${CSS_BASE_URL:-http://localhost:3001/}"]
+    volumes:
+      - css-data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/',r=>{r.resume();process.exit(r.statusCode<500?0:1)}).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - chainify
+
+  api:
+    build:
+      context: ../backend
+      target: dev
+    ports:
+      - "${API_PORT:-8080}:8080"
+    environment:
+      API_PORT: "8080"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-http://localhost:3000}"
+      WEBID_FETCH_ALLOWLIST: "${WEBID_FETCH_ALLOWLIST:-css,css:3000,localhost,localhost:3000}"
+      CSS_ISSUER_URL: "${CSS_ISSUER_URL:-http://localhost:3001/}"
+      FETCH_TIMEOUT_MS: "${FETCH_TIMEOUT_MS:-8000}"
+      MAX_PROFILE_BYTES: "${MAX_PROFILE_BYTES:-1048576}"
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+    volumes:
+      - ../backend:/app
+      - /go/pkg/mod
+    depends_on:
+      css:
+        condition: service_started
+    networks:
+      - chainify
+
+  web:
+    build:
+      context: ../frontend
+      target: dev
+    command: ["bun", "run", "dev", "--", "--hostname", "0.0.0.0", "--port", "3000"]
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: "${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080}"
+      NEXT_PUBLIC_SOLID_ISSUER: "${NEXT_PUBLIC_SOLID_ISSUER:-http://localhost:3001/}"
+      NEXT_PUBLIC_SOLID_CLIENT_ID: "${NEXT_PUBLIC_SOLID_CLIENT_ID:-http://localhost:3000/id}"
+      NEXT_PUBLIC_APP_URL: "${NEXT_PUBLIC_APP_URL:-http://localhost:3000}"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      - chainify
+
+volumes:
+  css-data:
+    name: chainify-css-data
+
+networks:
+  chainify:
+    name: chainify-dev
