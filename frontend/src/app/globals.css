@@ -1,0 +1,846 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* =============================================================================
+   Chainify design system
+   -----------------------------------------------------------------------------
+   Semua nilai visual hidup di file ini. Komponen memanggil token, bukan angka.
+
+   Layer 1  Primitives   : palet + skala (jarang berubah)
+   Layer 2  Semantics    : maksud pakai (background, primary, control, danger)
+   Layer 3  Utilities    : `@theme` → Tailwind class (text-h1, max-w-shell,
+                           rounded-control, ease-out-expo) dan `@utility` untuk
+                           pola komposit yang berulang.
+
+   Cara pakai di komponen:
+     text-display / text-h1 / text-body / text-caption   → tipografi
+     max-w-shell / max-w-marketing / max-w-form / max-w-prose → lebar konten
+     p-page / px-page / gap-stack / h-header            → ritme layout
+     bg-background / border-border / text-muted-foreground → warna semantic
+     focus-ring / eyebrow / metric-row / surface-quiet   → pola berulang
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   Layer 1 + 2 — Primitives and semantics, light theme.
+   Dark overrides only replace semantic mappings; every utility keeps its name.
+   ------------------------------------------------------------------------ */
+:root {
+  /* Palette (Obsidian neutral ramp + reserved action hues). */
+  --palette-white: #ffffff;
+  --palette-ink: #161616;
+  --palette-ink-800: #1e1e1e;
+  --palette-ink-700: #2a2a2a;
+  --palette-ink-600: #333333;
+  --palette-ink-400: #676767;
+  --palette-ink-300: #808080;
+  --palette-ink-200: #8b8b8b;
+  --palette-ink-100: #9a9a9a;
+  --palette-grey-600: #5c5c5c;
+  --palette-grey-500: #737373;
+  --palette-grey-200: #d6d6d6;
+  --palette-grey-100: #e6e6e6;
+  --palette-grey-50: #efefef;
+  --palette-grey-25: #e7e7e7;
+  --palette-blue-600: #2563eb;
+  --palette-blue-500: #3b82f6;
+  --palette-blue-700: #1d4ed8;
+  --palette-blue-tint: #f9fbff;
+  --palette-red-600: #dc2626;
+  --palette-red-700: #c81e1e;
+  --palette-red-500: #e5484d;
+  --palette-red-400: #f97373;
+  --palette-green-600: #16a34a;
+  --palette-green-500: #22c55e;
+  --palette-amber-600: #d97706;
+  --palette-amber-400: #fbbf24;
+
+  /* Semantic surfaces and text. */
+  --background: var(--palette-white);
+  --foreground: var(--palette-ink);
+  --card: var(--palette-white);
+  --card-foreground: var(--palette-ink);
+  --popover: var(--palette-white);
+  --popover-foreground: var(--palette-ink);
+  --muted: var(--palette-grey-50);
+  --muted-hover: var(--palette-grey-100);
+  --muted-foreground: var(--palette-grey-600);
+  --secondary: var(--palette-grey-50);
+  --secondary-foreground: var(--palette-ink);
+  --accent: var(--palette-grey-50);
+  --accent-foreground: var(--palette-ink);
+  --text-subtle: var(--palette-grey-500);
+
+  /* Lines, fills, and interactive controls. */
+  --border: var(--palette-grey-25);
+  --border-strong: var(--palette-grey-200);
+  --input: var(--palette-grey-200);
+  --ring: var(--palette-ink-200);
+  --control: var(--palette-white);
+
+  /* Action colours. Blue is reserved for primary actions, not body text. */
+  --primary: var(--palette-blue-600);
+  --primary-hover: var(--palette-blue-500);
+  --primary-foreground: var(--palette-blue-tint);
+  --primary-pressed: var(--palette-blue-700);
+  --destructive: var(--palette-red-500);
+  --destructive-solid: var(--palette-red-600);
+  --destructive-solid-hover: var(--palette-red-700);
+  --destructive-foreground: var(--palette-white);
+  --success: var(--palette-green-600);
+  --warning: var(--palette-amber-600);
+
+  /* Translucent menu surfaces. */
+  --menu: rgb(255 255 255 / 0.88);
+  --menu-shadow: 0 0 0 1px rgb(0 0 0 / 0.08), 0 2px 4px rgb(0 0 0 / 0.04),
+    0 12px 32px -6px rgb(0 0 0 / 0.16);
+
+  /* Elevation. */
+  --control-shadow: 0 0 0 1px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.06);
+  --primary-shadow: 0 2px 4px rgb(37 99 235 / 0.24), 0 0 0 1px var(--primary-pressed),
+    inset 0 4px 6px rgb(255 255 255 / 0.2),
+    inset 0 0 0 1px rgb(255 255 255 / 0.15),
+    inset 0 -8px 14px rgb(0 0 0 / 0.15);
+  --overlay-shadow: 0 16px 40px rgb(0 0 0 / 0.35);
+  --overlay-scrim: rgb(0 0 0 / 0.4);
+
+  /* Charts and status bars. */
+  --chart-1: var(--palette-blue-600);
+  --chart-2: var(--palette-green-600);
+  --chart-3: var(--palette-amber-600);
+  --chart-4: var(--palette-grey-500);
+  --chart-5: var(--palette-grey-200);
+
+  /* Status component tokens. */
+  --status-up: oklch(0.7 0.16 152);
+  --status-degraded: oklch(0.8 0.15 78);
+  --status-down: oklch(0.63 0.21 25);
+  --status-empty: color-mix(in oklab, currentColor 9%, transparent);
+  --session-success: oklch(0.52 0.13 152);
+  --session-warning: oklch(0.52 0.12 65);
+  --session-danger: oklch(0.55 0.2 27);
+  --session-danger-solid: oklch(0.577 0.215 27);
+
+  /* Showcase-only hues (hero rays). */
+  --rays-primary: #d8a25b;
+  --rays-secondary: #8eafd0;
+  --rays-opacity: 0.42;
+
+  /* -------------------------------------------------------------------------
+     Layout tokens — fluid where a fixed px would break on small screens.
+     ------------------------------------------------------------------------- */
+  --page-gutter: clamp(1rem, 0.6rem + 1.8vw, 1.5rem);
+  --page-band: clamp(2.5rem, 1.6rem + 3.6vw, 5rem);
+  --page-gap: clamp(1.25rem, 1rem + 1.2vw, 1.75rem);
+  --hero-min-height: clamp(34rem, 80svh, 42rem);
+  --shell-header-height: 3.25rem;
+  --shell-sidebar-default: 216px;
+  --shell-sidebar-min: 180px;
+  --shell-sidebar-max: 360px;
+  --shell-drawer-width: min(270px, 85vw);
+
+  --radius-base: 0.5rem;
+  --card-spacing: clamp(1rem, 0.9rem + 0.4vw, 1.25rem);
+  --card-spacing-sm: 1rem;
+
+  /* -------------------------------------------------------------------------
+     Control tokens — one rhythm for every interactive element.
+     ------------------------------------------------------------------------- */
+  --control-h-badge: 1.375rem;
+  --control-h-compact: 1.75rem;
+  --control-h-xs: 1.5rem;
+  --control-h-sm: 1.875rem;
+  --control-h-md: 2rem;
+  --control-h-lg: 2.25rem;
+  --control-icon-xs: 1.5rem;
+  --control-icon-sm: 1.875rem;
+  --control-icon-md: 2rem;
+  --control-icon-lg: 2.25rem;
+  --control-gap: 0.375rem;
+  --control-pad-x: 0.625rem;
+  --touch-target: 2.75rem;
+
+  /* Motion primitives. Radius is derived from --radius-base below. */
+  --motion-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-theme: 700ms;
+
+  /* Contrast helpers for tinted fills. */
+  --tint-primary: color-mix(in oklab, var(--primary) 12%, transparent);
+  --tint-success: color-mix(in oklab, var(--success) 12%, transparent);
+  --tint-danger: color-mix(in oklab, var(--destructive) 10%, transparent);
+  --tint-surface: color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+
+.dark {
+  --background: var(--palette-ink);
+  --foreground: var(--palette-blue-tint);
+  --card: var(--palette-ink);
+  --card-foreground: var(--palette-blue-tint);
+  --popover: var(--palette-ink-800);
+  --popover-foreground: var(--palette-blue-tint);
+  --muted: var(--palette-ink-700);
+  --muted-hover: var(--palette-ink-600);
+  --muted-foreground: var(--palette-ink-100);
+  --secondary: var(--palette-ink-700);
+  --secondary-foreground: var(--palette-blue-tint);
+  --accent: var(--palette-ink-700);
+  --accent-foreground: var(--palette-blue-tint);
+  --text-subtle: var(--palette-ink-300);
+
+  --border: var(--palette-ink-700);
+  --border-strong: var(--palette-ink-600);
+  --input: var(--palette-ink-600);
+  --ring: var(--palette-ink-400);
+  --control: var(--palette-ink-800);
+
+  --destructive: var(--palette-red-400);
+  --menu: rgb(30 30 30 / 0.88);
+  --menu-shadow: 0 0 0 1px rgb(0 0 0 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.1),
+    inset 0 0 0 1px rgb(255 255 255 / 0.06),
+    0 16px 36px -8px rgb(0 0 0 / 0.6);
+
+  --control-shadow: 0 0 0 1px rgb(0 0 0 / 0.4),
+    inset 0 1px 0 rgb(255 255 255 / 0.1),
+    inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  --primary-shadow: 0 4px 4px rgb(42 42 42 / 0.32), 0 0 0 1px #0e0e0e,
+    inset 0 4px 6px rgb(255 255 255 / 0.2),
+    inset 0 0 0 1px rgb(255 255 255 / 0.15),
+    inset 0 -8px 14px rgb(0 0 0 / 0.15);
+
+  --chart-1: var(--palette-blue-500);
+  --chart-2: var(--palette-green-500);
+  --chart-3: var(--palette-amber-400);
+  --chart-4: var(--palette-ink-100);
+  --chart-5: var(--palette-ink-600);
+
+  --status-up: oklch(0.72 0.15 152);
+  --status-degraded: oklch(0.82 0.14 80);
+  --status-down: oklch(0.66 0.2 25);
+  --status-empty: color-mix(in oklab, currentColor 11%, transparent);
+  --session-success: oklch(0.76 0.15 152);
+  --session-warning: oklch(0.82 0.13 80);
+  --session-danger: oklch(0.72 0.17 25);
+  --session-danger-solid: oklch(0.6 0.21 27);
+
+  --rays-primary: #ffc46b;
+  --rays-secondary: #96c8ff;
+  --rays-opacity: 0.55;
+
+  --overlay-scrim: rgb(0 0 0 / 0.55);
+}
+
+/* ---------------------------------------------------------------------------
+   Layer 3 — token namespaces that Tailwind turns into utilities.
+   ------------------------------------------------------------------------ */
+@theme inline {
+  /* Colour utilities: bg-background, text-muted-foreground, border-border… */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-border: var(--border);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-heading: var(--font-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Radius utilities: rounded-control, rounded-surface, rounded-pill. */
+  --radius-xs: calc(var(--radius-base) - 4px);
+  --radius-sm: calc(var(--radius-base) - 2px);
+  --radius-md: var(--radius-base);
+  --radius-lg: calc(var(--radius-base) + 4px);
+  --radius-xl: calc(var(--radius-base) + 8px);
+  --radius-control: var(--radius-base);
+  --radius-surface: calc(var(--radius-base) + 4px);
+  --radius-raised: calc(var(--radius-base) + 8px);
+  --radius-pill: var(--radius-pill-value);
+
+  /* Elevation utilities: shadow-control, shadow-primary, shadow-menu. */
+  --shadow-control: var(--control-shadow);
+  --shadow-primary: var(--primary-shadow);
+  --shadow-menu: var(--menu-shadow);
+  --shadow-2xs: var(--control-shadow);
+  --shadow-xs: var(--control-shadow);
+
+  /* Motion utilities: ease-out-expo, duration-fast… */
+  --ease-out-expo: var(--motion-ease-out-expo);
+  --ease-in-out-quint: var(--motion-ease-in-out-quint);
+
+  /* Width utilities: max-w-shell, max-w-marketing, max-w-form, max-w-prose. */
+  --container-shell: 75rem;
+  --container-marketing: 72rem;
+  --container-form: 32rem;
+  --container-prose: 46rem;
+  --container-drawer: var(--shell-drawer-width);
+
+  /* Spacing utilities: p-page, px-page, gap-section, mt-band. */
+  --spacing-page: var(--page-gutter);
+  --spacing-band: var(--page-band);
+  --spacing-stack: var(--page-gap);
+  --spacing-header: var(--shell-header-height);
+  --spacing-badge: var(--control-h-badge);
+  --spacing-compact: var(--control-h-compact);
+  --spacing-control-xs: var(--control-h-xs);
+  --spacing-control-sm: var(--control-h-sm);
+  --spacing-control-md: var(--control-h-md);
+  --spacing-control-lg: var(--control-h-lg);
+  --spacing-touch: var(--touch-target);
+
+  /* ---------------------------------------------------------------------
+     Type scale — fluid clamp() so mobile and desktop share one class name.
+     Utilities: text-display, text-h1…text-h3, text-subhead, text-body-lg,
+     text-body, text-small, text-caption, text-micro, text-eyebrow.
+     ------------------------------------------------------------------ */
+  --text-display: clamp(2.5rem, 1.85rem + 2.7vw, 3.75rem);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.045em;
+  --text-display--font-weight: 600;
+
+  --text-h1: clamp(1.5rem, 1.32rem + 0.75vw, 1.875rem);
+  --text-h1--line-height: 1.2;
+  --text-h1--letter-spacing: -0.028em;
+  --text-h1--font-weight: 600;
+
+  --text-h2: clamp(1.25rem, 1.13rem + 0.5vw, 1.5rem);
+  --text-h2--line-height: 1.25;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 1rem;
+  --text-h3--line-height: 1.35;
+  --text-h3--letter-spacing: -0.018em;
+  --text-h3--font-weight: 600;
+
+  --text-subhead: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
+  --text-subhead--line-height: 1.3;
+  --text-subhead--letter-spacing: -0.03em;
+  --text-subhead--font-weight: 500;
+
+  --text-body-lg: clamp(0.875rem, 0.84rem + 0.15vw, 0.9375rem);
+  --text-body-lg--line-height: 1.65;
+
+  --text-body: 0.8125rem;
+  --text-body--line-height: 1.6;
+
+  --text-small: 0.78125rem;
+  --text-small--line-height: 1.55;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.45;
+
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.35;
+
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1.2;
+  --text-eyebrow--letter-spacing: 0.12em;
+  --text-eyebrow--font-weight: 500;
+
+  --text-mono-caption: 0.75rem;
+  --text-mono-caption--line-height: 1.5;
+
+  --text-mono-micro: 0.6875rem;
+  --text-mono-micro--line-height: 1.4;
+}
+
+/* Sidebar palettes follow the semantic surfaces. */
+:root {
+  --radius-pill-value: 9999px;
+  --sidebar: var(--palette-white);
+  --sidebar-foreground: var(--palette-ink);
+  --sidebar-primary: var(--palette-blue-600);
+  --sidebar-primary-foreground: var(--palette-blue-tint);
+  --sidebar-accent: var(--palette-grey-50);
+  --sidebar-accent-foreground: var(--palette-ink);
+  --sidebar-border: var(--palette-grey-25);
+  --sidebar-ring: var(--palette-ink-200);
+}
+
+.dark {
+  --sidebar: var(--palette-ink);
+  --sidebar-foreground: var(--palette-blue-tint);
+  --sidebar-primary: var(--palette-blue-600);
+  --sidebar-primary-foreground: var(--palette-blue-tint);
+  --sidebar-accent: var(--palette-ink-700);
+  --sidebar-accent-foreground: var(--palette-blue-tint);
+  --sidebar-border: var(--palette-ink-700);
+  --sidebar-ring: var(--palette-ink-400);
+}
+
+/* ---------------------------------------------------------------------------
+   Base — element defaults, driven by the same tokens.
+   ------------------------------------------------------------------------ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    font-size: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background font-sans text-small text-foreground;
+    font-weight: 400;
+    letter-spacing: -0.006em;
+    text-rendering: optimizeLegibility;
+    font-synthesis: none;
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading text-foreground;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  h1 {
+    @apply text-h1;
+  }
+
+  h2 {
+    @apply text-h2;
+  }
+
+  h3 {
+    @apply text-h3;
+  }
+
+  h4,
+  h5,
+  h6 {
+    @apply text-body font-semibold tracking-[-0.015em];
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+  }
+
+  /* Long URLs must break inside cards instead of widening them. */
+  address,
+  cite,
+  dfn {
+    overflow-wrap: anywhere;
+  }
+
+  small {
+    @apply text-micro;
+    letter-spacing: 0;
+  }
+
+  label,
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button,
+  label {
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: default;
+  }
+
+  /* Native date/number spinners fight the compact Obsidian scale. */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  code,
+  pre,
+  kbd,
+  samp {
+    @apply font-mono;
+    letter-spacing: 0;
+  }
+
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 20%, transparent);
+  }
+
+  :focus-visible {
+    outline-offset: 2px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Design system utilities — composite patterns that were being copy-pasted.
+   `@utility` keeps them variant-aware (hover:, dark:, sm:…).
+   ------------------------------------------------------------------------ */
+
+/* Section rhythm for marketing and app pages. */
+@utility page-shell {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--container-marketing);
+  padding-inline: var(--page-gutter);
+}
+
+@utility page-band {
+  padding-block: var(--page-band);
+}
+
+/* Page title block used by every workspace route. */
+@utility page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.25rem;
+
+  @media (width >= 40rem) {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+}
+
+@utility page-title {
+  font-size: var(--text-h1);
+  line-height: var(--text-h1--line-height);
+  letter-spacing: var(--text-h1--letter-spacing);
+  font-weight: var(--text-h1--font-weight);
+}
+
+@utility page-lead {
+  max-width: var(--container-prose);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--muted-foreground);
+}
+
+/* Uppercase kicker above section headings. */
+@utility eyebrow {
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+  letter-spacing: var(--text-eyebrow--letter-spacing);
+  font-weight: var(--text-eyebrow--font-weight);
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Shared keyboard focus treatment for bare links and tiles. */
+@utility focus-ring {
+  border-radius: var(--radius-control);
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+  }
+}
+
+/* Label + value row inside a card (Pod metadata, session details). */
+@utility metric-row {
+  display: grid;
+  gap: 0.25rem 0.75rem;
+  border-top: 1px solid var(--border);
+  padding-block: 0.625rem;
+
+  @media (width >= 40rem) {
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  &:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
+@utility metric-label {
+  font-size: var(--text-micro);
+  line-height: var(--text-micro--line-height);
+  color: var(--muted-foreground);
+}
+
+@utility metric-value {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-mono-caption);
+  line-height: var(--text-mono-caption--line-height);
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+@utility metric-value-muted {
+  color: var(--muted-foreground);
+}
+
+/* Quiet bordered panel used for inline diagrams and notes. */
+@utility surface-quiet {
+  border-radius: var(--radius-surface);
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: clamp(1rem, 0.8rem + 0.8vw, 1.5rem);
+}
+
+/* Icon plate in front of card titles and list rows. */
+@utility icon-plate {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--control-h-md);
+  height: var(--control-h-md);
+  border-radius: var(--radius-control);
+  background: var(--muted);
+  color: var(--foreground);
+  box-shadow: var(--control-shadow);
+}
+
+/* Status dot, sized and coloured by state. */
+@utility status-dot {
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  flex: none;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+}
+
+@utility status-dot-ok {
+  background: var(--success);
+}
+
+/* Fluid feature grid: 1 → 2 → 3 columns without per-page breakpoint maths. */
+@utility grid-cards {
+  display: grid;
+  gap: var(--page-gap);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+}
+
+@utility grid-steps {
+  display: grid;
+  gap: var(--page-gap);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+
+/* Two-column workspace layout that collapses on narrow viewports. */
+@utility grid-dashboard {
+  display: grid;
+  gap: var(--page-gap);
+  align-items: start;
+  grid-template-columns: 1fr;
+
+  @media (width >= 80rem) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Horizontal action rail under forms. */
+@utility action-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+/* Small labelled pill for chip-style content. */
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 0.5rem 1.125rem;
+  box-shadow: var(--control-shadow);
+  font-size: var(--text-micro);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--foreground);
+  user-select: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Theme transition (Skiper26 circular reveal) — timed by tokens.
+   ------------------------------------------------------------------------ */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(root) {
+  animation-duration: var(--duration-theme);
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(root),
+.dark::view-transition-old(root) {
+  animation: none;
+  z-index: -1;
+}
+
+::view-transition-new(root) {
+  animation-name: chainify-theme-reveal;
+}
+
+@keyframes chainify-theme-reveal {
+  from {
+    clip-path: circle(0% at 100% 0%);
+  }
+  to {
+    clip-path: circle(150% at 100% 0%);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Obsidian scrollbars — quiet until the region is in use.
+   ------------------------------------------------------------------------ */
+@supports not selector(::-webkit-scrollbar) {
+  .obsidian-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .obsidian-scroll:is(:hover, :focus-within) {
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+@supports selector(::-webkit-scrollbar) {
+  .obsidian-scroll::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .obsidian-scroll::-webkit-scrollbar-track,
+  .obsidian-scroll::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  .obsidian-scroll::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-pill);
+    background: transparent;
+  }
+
+  .obsidian-scroll:is(:hover, :focus-within)::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+  }
+
+  .obsidian-scroll::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+.obsidian-shell[data-resizing] {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* ---------------------------------------------------------------------------
+   FlipText — characters spend most of the cycle upright and flip briefly.
+   ------------------------------------------------------------------------ */
+@keyframes flip {
+  0%,
+  55% {
+    transform: rotateX(0deg) translateZ(0);
+  }
+  80% {
+    transform: rotateX(360deg) translateZ(0.08em);
+  }
+  100% {
+    transform: rotateX(360deg) translateZ(0);
+  }
+}
+
+.flip-char {
+  animation: flip var(--flip-duration, 2.2s) var(--flip-delay, 0s)
+    var(--flip-iteration, infinite) var(--ease-out-expo) both;
+  transform-origin: 50% 50%;
+  backface-visibility: visible;
+}
+
+/* ---------------------------------------------------------------------------
+   Reduced motion — every animation collapses to a state change.
+   ------------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+
+  .flip-char {
+    animation: none;
+  }
+}
